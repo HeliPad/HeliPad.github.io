@@ -1,3 +1,13 @@
+<DOCTYPE! html>
 <html>
-   <h1>Vector Editor</h1>
+   <head>
+      <script src="js/script.js"></script>
+   </head>
+   <body onload="counter(0, 10)">
+      <h1>Vector Editor</h1>
+      <p id="text">Counting</p>
+      <svg id="drawing" width="500" height="500">
+         <circle onmousedown="startDrag(this)" onmouseup="stopDrag()" id="circle" cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="purple"/>
+      </svg>
+   </body>
 </html>
