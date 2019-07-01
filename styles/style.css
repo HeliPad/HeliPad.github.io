@@ -1,0 +1,21 @@
+svg {
+   border-color: black;
+   border-width: 5px;
+   border-style: solid;
+}
+
+#drawing {
+   width: 500px;
+   height: 500px;
+   margin-right: 20px;
+   float: left;
+}
+
+#config {
+   width: 200px;
+   float: left;
+}
+
+.clearfix{
+   clear: both
+}
