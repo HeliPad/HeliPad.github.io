@@ -1,21 +1,24 @@
-function counter(i, target) {
-   setTimeout(function() {
-      document.getElementById("text").innerHTML = i;
-      if (i < target)
-         counter(i + 1, target);
-   }, 1000);
-}
 var dragging = false;
 var dragEle
 var dragOffset = {x:0, y:0}
 
 var gridSize = 20;
 var imageSize = 20;
+var vertices = []
+var vLabels = []
+var gridContainer
+var lineContainer
+var vertexContainer
+var vLabelContainer
 
+function snapPoint(x, y) {
+   var frameSize = document.getElementById("frame").getAttribute("width");
+   var frameToImage = imageSize / frameSize;
 
-function test(e) {
-   //document.getElementById("circle").setAttribute("fill", "red");
-   e.setAttribute("fill", "red");
+   var newX = Math.round(x * frameToImage) * (1 / frameToImage);
+   var newY = Math.round(y * frameToImage) * (1 / frameToImage);
+
+   return [newX, newY];
 }
 
 function startDrag(e) {
@@ -27,35 +30,98 @@ function stopDrag() {
    dragging = false;
 }
 
-function snapPoint(x, y) {
+function updateVertexConnections() {
+   // Remove old connections
+   while (lineContainer.firstChild)
+      lineContainer.removeChild(lineContainer.firstChild);
+
+   for (var i = 1; i < vertices.length; i++) {
+      var line = document.createElementNS(document.getElementById("frame").namespaceURI, 'line')
+      line.setAttribute("x1", vertices[i-1].getAttribute("cx"));
+      line.setAttribute("y1", vertices[i-1].getAttribute("cy"));
+      line.setAttribute("x2", vertices[i].getAttribute("cx"));
+      line.setAttribute("y2", vertices[i].getAttribute("cy"));
+      line.setAttribute("style", "stroke:rgb(50, 50, 50);stroke-width:4");
+      lineContainer.appendChild(line);
+   }
+}
+
+function addVertex() {
    var frameSize = document.getElementById("frame").getAttribute("width");
-   var frameToImage = imageSize / frameSize;
-   var newX = Math.round(x * frameToImage) * (1 / frameToImage);
-   var newY = Math.round(y * frameToImage) * (1 / frameToImage);
-   return [newX, newY];
+
+   var hX = frameSize * 0.5;
+   var hY = frameSize * 0.5;
+   var snapped = snapPoint(hX, hY);
+   hX = snapped[0];
+   hY = snapped[1];
+
+   var vertex = document.createElementNS(document.getElementById("frame").namespaceURI, 'circle');
+   vertex.setAttribute("onmousedown", "startDrag(this)");
+   vertex.setAttribute("onmouseup", "startDrag(this)");
+   vertex.setAttribute("cx", hX);
+   vertex.setAttribute("cy", hY);
+   vertex.setAttribute("r", 5);
+   vertex.setAttribute("stroke", "black");
+   vertex.setAttribute("stroke-width", 2);
+   vertex.setAttribute("fill", "orange");
+
+   var label = document.createElementNS(document.getElementById("frame").namespaceURI, 'text');
+   label.setAttribute("x", hX - 15);
+   label.setAttribute("y", hY - 10);
+   label.setAttribute("font-family", "Arial Black");
+   label.setAttribute("font-size", "20px");
+   label.setAttribute("fill", "blue");
+
+   var text = document.createTextNode(vertices.length);
+   label.appendChild(text);
+
+   vertices[vertices.length] = vertex;
+   vertexContainer.appendChild(vertex);
+
+   vLabels[vLabels.length] = label;
+   vLabelContainer.appendChild(label);
+}
+
+function removeVertex(i) {
+   var removedVert = vertices.splice(i, 1);
+   var removedLabel = vLabels.splice(i, 1);
+   removedVert.remove();
+   removedLabel.remove();
 }
 
 document.addEventListener("mousemove", function(event) {
    if (dragging)
    {
       var rect = document.getElementById("drawing").getBoundingClientRect();
+      var oldCX = dragEle.getAttribute("cx");
+      var oldCY = dragEle.getAttribute("cy");
       var nCX = event.clientX - rect.left
       var nCY = event.clientY - rect.top;
+
       var newPoint = snapPoint(nCX, nCY);
       nCX = Math.max(Math.min(newPoint[0], rect.width), 0);
       nCY = Math.max(Math.min(newPoint[1], rect.height), 0);
-      console.log(nCY, rect.height);
+
       dragEle.setAttribute("cx", nCX);
       dragEle.setAttribute("cy", nCY);
+
+      for (var i = 0; i < vertices.length; i++) {
+         if (vertices[i] == dragEle) {
+            vLabels[i].setAttribute("x", vertices[i].getAttribute("cx") - 15);
+            vLabels[i].setAttribute("y", vertices[i].getAttribute("cy") - 10);
+            break;
+         }
+      }
+
+      if (oldCX != nCX || oldCY != nCY)
+         updateVertexConnections();
    }
 });
 
 function updateGrid() {
    // Delete all grid lines
-   var grid = document.getElementById("grid");
-   while (grid.firstChild) {
-      grid.removeChild(grid.firstChild);
-   }
+   while (gridContainer.firstChild)
+      gridContainer.removeChild(gridContainer.firstChild);
 
    var frameSize = document.getElementById("frame").getAttribute("width");
    var step = frameSize / gridSize;
@@ -67,9 +133,8 @@ function updateGrid() {
       line.setAttribute("y1", 0);
       line.setAttribute("x2", x * step);
       line.setAttribute("y2", frameSize);
-      line.setAttribute("style", "stroke:rgb(150,150,150);stroke-width:2");
-      grid.appendChild(line);
-      console.log(x);
+      line.setAttribute("style", "stroke:rgb(150, 150, 150);stroke-width:2");
+      gridContainer.appendChild(line);
    }
 
    // Horizontal lines
@@ -79,21 +144,31 @@ function updateGrid() {
       line.setAttribute("y1", y * step);
       line.setAttribute("x2", frameSize);
       line.setAttribute("y2", y * step);
-      line.setAttribute("style", "stroke:rgb(150,150,150);stroke-width:2");
-      grid.appendChild(line);
-      console.log(x);
+      line.setAttribute("style", "stroke:rgb(150, 150, 150);stroke-width:2");
+      gridContainer.appendChild(line);
    }
 }
 
 function init() {
-   counter(0, 10);
-   updateGrid()
+   gridContainer = document.getElementById("grid");
+   lineContainer = document.getElementById("lines");
+   vertexContainer = document.getElementById("vertices");
+   vLabelContainer = document.getElementById("vLabels");
+   updateGrid();
+   addVertex();
+   addVertex();
 }
 
 
 document.addEventListener("mouseup", function(event) {
    dragging = false;
 });
+
+// Prevent text highlighting while dragging vertices
+window.addEventListener('mousedown', (e) => {
+   if (dragging)
+      e.preventDefault();
+ })
 
 // make the system use numbered nodes and it will automatically connect them in numerical order
 
