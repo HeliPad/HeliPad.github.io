@@ -16,6 +16,10 @@ svg {
    float: left;
 }
 
-.clearfix{
+.configRule {
+   border-top: 2px solid black;
+}
+
+.clearfix {
    clear: both
 }

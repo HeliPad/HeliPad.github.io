@@ -46,6 +46,12 @@ function updateVertexConnections() {
    }
 }
 
+function updateVLabels() {
+   for (var i = 0; i < vLabels.length; i++) {
+      vLabels[i].innerHTML = i;
+   }
+}
+
 function addVertex() {
    var frameSize = document.getElementById("frame").getAttribute("width");
 
@@ -80,13 +86,20 @@ function addVertex() {
 
    vLabels[vLabels.length] = label;
    vLabelContainer.appendChild(label);
+
+   updateVertexConnections();
 }
 
-function removeVertex(i) {
-   var removedVert = vertices.splice(i, 1);
-   var removedLabel = vLabels.splice(i, 1);
-   removedVert.remove();
-   removedLabel.remove();
+function removeVertex() {
+   var i = document.getElementById("removeIndex").value;
+   var removedVert = vertices.splice(i, 1)[0];
+   var removedLabel = vLabels.splice(i, 1)[0];
+
+   vertexContainer.removeChild(removedVert);
+   vLabelContainer.removeChild(removedLabel);
+
+   updateVertexConnections();
+   updateVLabels();
 }
 
 document.addEventListener("mousemove", function(event) {

@@ -7,7 +7,6 @@
    <body onload="init()">
       <h1>Vector Editor</h1>
 
-      <p id="text">Counting</p>
       <div id="drawing">
          <svg id="frame" width="500" height="500" borderwidth=5px>
             <g id="grid" style="visibility: visible;"></g>
@@ -19,8 +18,11 @@
       </div>
 
       <div id="config">
-         <button>Yeet</button>
-         <input width="100" height="50"></input>
+         <button onclick="addVertex()">Add vertex</button>
+         <hr class="configRule"/>
+         <button onclick="removeVertex()">Remove given vertex</button>
+         <input width="100" height="50" id="removeIndex"></input>
+         <hr class="configRule"/>
       </div>
       <div class="clearfix"></div>
    </body>
