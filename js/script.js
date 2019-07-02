@@ -162,11 +162,48 @@ function updateGrid() {
    }
 }
 
+String.prototype.replaceAll = function(search, replacement) {
+   var target = this;
+   return target.split(search).join(replacement);
+};
+
+function arrToCPPArrayString(arr) {
+    var str = JSON.stringify(arr);
+    str = str.replaceAll("[", "{");
+    str = str.replaceAll("]", "}");
+    return str;
+}
+
+function exportVertices() {
+   var frameSize = document.getElementById("frame").getAttribute("width");
+   var vertArr = [];
+
+   for (var i = 0; i < vertices.length; i++) {
+      // Scale coordinates to image size
+      var x = vertices[i].getAttribute("cx") / frameSize * imageSize - imageSize*0.5;
+      // Must be reversed so y = 0 is at the bottom instead of top
+      var y = (frameSize - vertices[i].getAttribute("cy")) / frameSize * imageSize - imageSize*0.5;
+      vertArr[i] = [x, y];
+   }
+
+   document.getElementById("codeArea").innerText = arrToCPPArrayString(vertArr);
+}
+
+function importVertices() {
+   var str = document.getElementById("codeArea").innerHTML;
+   str = str.replaceAll("{", "[");
+   str = str.replaceAll("}", "]");
+   var vertArr = JSON.parse(str);
+
+   
+}
+
 function init() {
    gridContainer = document.getElementById("grid");
    lineContainer = document.getElementById("lines");
    vertexContainer = document.getElementById("vertices");
    vLabelContainer = document.getElementById("vLabels");
+
    updateGrid();
    addVertex();
    addVertex();
