@@ -52,9 +52,8 @@ function updateVLabels() {
    }
 }
 
-function addVertex() {
+function addVertex(x, y) {
    var frameSize = document.getElementById("frame").getAttribute("width");
-
    var hX = frameSize * 0.5;
    var hY = frameSize * 0.5;
    var snapped = snapPoint(hX, hY);
@@ -64,16 +63,16 @@ function addVertex() {
    var vertex = document.createElementNS(document.getElementById("frame").namespaceURI, 'circle');
    vertex.setAttribute("onmousedown", "startDrag(this)");
    vertex.setAttribute("onmouseup", "startDrag(this)");
-   vertex.setAttribute("cx", hX);
-   vertex.setAttribute("cy", hY);
+   vertex.setAttribute("cx", x || hX);
+   vertex.setAttribute("cy", y || hY);
    vertex.setAttribute("r", 5);
    vertex.setAttribute("stroke", "black");
    vertex.setAttribute("stroke-width", 2);
    vertex.setAttribute("fill", "orange");
 
    var label = document.createElementNS(document.getElementById("frame").namespaceURI, 'text');
-   label.setAttribute("x", hX - 15);
-   label.setAttribute("y", hY - 10);
+   label.setAttribute("x", (x || hX) - 15);
+   label.setAttribute("y", (y || hY) - 10);
    label.setAttribute("font-family", "Arial Black");
    label.setAttribute("font-size", "20px");
    label.setAttribute("fill", "blue");
@@ -162,6 +161,12 @@ function updateGrid() {
    }
 }
 
+function setGridSize()
+{
+   gridSize = document.getElementById("gridSize").value;
+   updateGrid();
+}
+
 String.prototype.replaceAll = function(search, replacement) {
    var target = this;
    return target.split(search).join(replacement);
@@ -186,16 +191,36 @@ function exportVertices() {
       vertArr[i] = [x, y];
    }
 
-   document.getElementById("codeArea").innerText = arrToCPPArrayString(vertArr);
+   document.getElementById("codeArea").value = arrToCPPArrayString(vertArr);
 }
 
 function importVertices() {
-   var str = document.getElementById("codeArea").innerHTML;
+   var str = document.getElementById("codeArea").value;
    str = str.replaceAll("{", "[");
    str = str.replaceAll("}", "]");
    var vertArr = JSON.parse(str);
 
-   
+   // Clear the arrays
+   vertices = [];
+   vLabels = [];
+   //{ {-7,-7},{-3,5},{0,0},{3,5},{7,-7},{3,-4},{0,-5},{-3,-4},{-7,-7} }
+
+   while (vertexContainer.firstChild)
+      vertexContainer.removeChild(vertexContainer.firstChild);
+   while (vLabelContainer.firstChild)
+      vLabelContainer.removeChild(vLabelContainer.firstChild);
+   while (lineContainer.firstChild)
+      lineContainer.removeChild(lineContainer.firstChild);
+
+   var frameSize = document.getElementById("frame").getAttribute("width");
+   var step = frameSize / gridSize;
+
+   for (var i = 0; i < vertArr.length; i++) {
+      vertArr[i][1] *= -1;
+      var cX = vertArr[i][0] * step + frameSize * 0.5
+      var cY = vertArr[i][1] * step + frameSize * 0.5
+      addVertex(cX, cY);
+   }
 }
 
 function init() {
